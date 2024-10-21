@@ -18,12 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
 
-
-
+//TODO Добавить валидацию
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -33,7 +32,7 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponse>> findAll(@RequestParam(required = false, defaultValue = "0") int page, 
+    public ResponseEntity<List<UserResponse>> findAllUsers(@RequestParam(required = false, defaultValue = "0") int page, 
                                                     @RequestParam(required = false, defaultValue = "10") int size ){
         List<User> users = userService.findAllUsers(PageRequest.of(page, size));
         List<UserResponse> userResponsesList = userMapper.toUserResponseList(users);
@@ -47,13 +46,12 @@ public class UserController {
             System.out.println("Id не может быть null");
             return null;
         }
-        Optional<User> user = userService.getUserById(id);
-        return user.map(value -> ResponseEntity.ok(userMapper.toUserResponse(value))).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(userMapper.toUserResponse(userService.getUserById(id)));
     }
 
     //Не в get запросах использовать @RequestBody и @PathVariable
-    @PostMapping(value = "/", consumes = "application/json", produces = "application/json")
-    public Optional<User> createUser(@RequestBody User user) {
+    @PostMapping(value = "/user/add", consumes = "application/json", produces = "application/json")
+    public User createUser(@RequestBody User user) {
         if (user == null) {
             System.out.println("user не можеть быть null");
             return null;
@@ -63,7 +61,14 @@ public class UserController {
         return userService.getUserById(user.getId());
     }
 
-    @DeleteMapping("/{id}")
+    @PutMapping("user/update/{id}")
+    public User putMethodName(@PathVariable Long id, @RequestBody User user) {
+        userService.updateUser(id,user);
+        
+        return userService.getUserById(id);
+    }
+
+    @DeleteMapping("/user/{id}")
     public String deleteUser(@PathVariable Long id){
         if (id == null) {
             return "Id не может быть null";

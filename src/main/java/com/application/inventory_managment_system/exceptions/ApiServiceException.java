@@ -1,4 +1,4 @@
-package com.application.exceptions;
+package com.application.inventory_managment_system.exceptions;
 
 import org.springframework.http.HttpStatusCode;
 
