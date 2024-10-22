@@ -1,15 +1,20 @@
 package com.application.inventory_managment_system.mappers;
 
 
-import com.application.inventory_managment_system.entities.User;
-import com.application.inventory_managment_system.entities.dto.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
+
+import com.application.inventory_managment_system.model.dto.response.UserResponse;
+import com.application.inventory_managment_system.model.entities.User;
 
 import java.util.List;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface UserMapper {
+@Mapper(
+    componentModel = MappingConstants.ComponentModel.SPRING,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    )
+public interface UserMapper{
 
     UserResponse toUserResponse(User user);
 

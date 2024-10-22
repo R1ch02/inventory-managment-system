@@ -1,18 +1,18 @@
 package com.application.inventory_managment_system.services;
 
-import java.util.List;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.application.inventory_managment_system.entities.User;
 import com.application.inventory_managment_system.exceptions.ApiServiceException;
+import com.application.inventory_managment_system.model.entities.User;
 import com.application.inventory_managment_system.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-//TODO добавить валидацию
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,16 +46,11 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public List<User> findAllUsers(PageRequest pageRequest){
+    public Page<User> findAllUsers(Pageable pageable){
 
-        return userRepository.findAllByPageRequest(pageRequest);
+       return userRepository.findAll(pageable);
     }
 
-    //TODO стоит ли писать отдельный метод?
-    public void updateUser(Long id, User user) {
-
-        
-    }
 
 
 

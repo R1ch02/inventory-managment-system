@@ -1,17 +1,16 @@
 package com.application.inventory_managment_system.services;
 
-import java.util.List;
-
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.application.inventory_managment_system.entities.Product;
 import com.application.inventory_managment_system.exceptions.ApiServiceException;
+import com.application.inventory_managment_system.model.entities.Product;
 import com.application.inventory_managment_system.repositories.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
-//TODO Добавить валидацию
+
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -21,14 +20,11 @@ public class ProductService {
     public Product getProductById(Long id){
         if (id == null) {
             throw new ApiServiceException("Id продукта не может быть null", HttpStatus.BAD_REQUEST);
-            
         }
+        
         return productRepository.findById(id).orElseThrow(() -> new ApiServiceException("Продукт не найден", HttpStatus.NOT_FOUND));
     }
 
-    public List<Product> findAllByPageRequest(PageRequest pageRequest) {
-        return productRepository.findAllByPageRequest(pageRequest);
-    }
 
     public void addProduct(Product product){
         productRepository.save(product);
@@ -36,6 +32,10 @@ public class ProductService {
 
     public void deleteProductById(Long id){
         productRepository.deleteById(id);
+    }
+
+    public Page<Product> findAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
    

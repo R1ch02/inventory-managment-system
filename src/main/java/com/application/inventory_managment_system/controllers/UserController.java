@@ -1,14 +1,21 @@
 package com.application.inventory_managment_system.controllers;
 
 
-import com.application.inventory_managment_system.entities.User;
-import com.application.inventory_managment_system.entities.dto.UserResponse;
 import com.application.inventory_managment_system.mappers.UserMapper;
+import com.application.inventory_managment_system.model.dto.response.UserResponse;
+import com.application.inventory_managment_system.model.entities.User;
 import com.application.inventory_managment_system.services.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.PageRequest;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,21 +32,42 @@ import org.springframework.web.bind.annotation.PutMapping;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+@Tag(name = "Контроллер профиля пользователя", description = "API по работе с профилем пользователя")
 public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponse>> findAllUsers(@RequestParam(required = false, defaultValue = "0") int page, 
-                                                    @RequestParam(required = false, defaultValue = "10") int size ){
-        List<User> users = userService.findAllUsers(PageRequest.of(page, size));
-        List<UserResponse> userResponsesList = userMapper.toUserResponseList(users);
-        return ResponseEntity.ok(userResponsesList);
+    @Operation(
+        summary = "Вывод всех пользователей",
+        description = "GET API запрос на постраничный вывод пользователей",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "OK")
+        }
+    )
+    public ResponseEntity<Page<UserResponse>> findAllUsers(@ParameterObject Pageable pageable){
+
+        return ResponseEntity.ok(
+            userService.findAllUsers(pageable).map(user -> userMapper.toUserResponse(user))
+        );
     }
     
     //В get запросе использовать @RequestParam 
+    
     @GetMapping("/user")
+    @Operation(
+        summary = "Вывод пользователя",
+        description = "GET API запрос на получение пользователя по ID",
+        responses = {
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Товар не найден\"}")
+                })
+            }),
+            @ApiResponse(responseCode = "200", description = "OK")
+        }
+    )
     public ResponseEntity<UserResponse> findById(@RequestParam Long id){
         if (id == null) {
             System.out.println("Id не может быть null");
@@ -61,13 +88,18 @@ public class UserController {
         return userService.getUserById(user.getId());
     }
 
+    //TODO добавить PUT запрос
+    //TODO Jackson реализовать новые requestDTO и @JsonView
+    //TODO Swagger написать документацию
+    //TODO Validated настроить валидацию на уровне контроллера
     @PutMapping("user/update/{id}")
     public User putMethodName(@PathVariable Long id, @RequestBody User user) {
-        userService.updateUser(id,user);
+       
         
         return userService.getUserById(id);
     }
 
+    //TODO Swagger написать документацию
     @DeleteMapping("/user/{id}")
     public String deleteUser(@PathVariable Long id){
         if (id == null) {
