@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.application.inventory_managment_system.mappers.ProductMapper;
+import com.application.inventory_managment_system.model.dto.request.ProductRequest;
 import com.application.inventory_managment_system.model.dto.response.ProductResponse;
 import com.application.inventory_managment_system.model.entities.Product;
 import com.application.inventory_managment_system.services.ProductService;
@@ -24,11 +25,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.data.domain.Page;
 
 
-//Добавить валидацию
+//TODO Отрефакторить апи с товарами
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -71,25 +73,42 @@ public class ProductController {
     }
 
 
-    //TODO Swagger написать документацию
     @PostMapping("/product/add")
-    public Product postMethodName(@RequestBody Product product) {
+    @Operation(
+        summary = "Регистрация товара",
+        description = "POST API запрос на регистрацию товара. В случае успеха возвращается id товара.",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Товар зарегестрирован")
+        })
+    public Product createProduct(@RequestBody Product product) {
         
         productService.addProduct(product);
         
         return productService.getProductById(product.getId());
     }
 
-    //TODO Swagger написать документацию
+    @PutMapping("product/update/{id}")
+    public ResponseEntity<ProductResponse> putMethodName(@PathVariable Long id, @RequestBody ProductRequest productRequest) {
+        
+        
+        return ResponseEntity.ok(
+            productMapper.toProductResponse(productService.updateProductData(id, productRequest))
+        );
+    }
+
+
+
     @DeleteMapping("product/{id}")
+    @Operation(
+        summary = "Удаление товара",
+        description = "DELETE API запрос на удаление товара по id",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Товар удален")
+    })
     public String deleteProductById(@PathVariable Long id){
         productService.deleteProductById(id);
-        return "Удален продукет с id - " + id;
+        return "Удален товар с id - " + id;
     }
     
-    //TODO добавить PUT запрос
-    //TODO Jackson реализовать новые requestDTO и @JsonView
-    //TODO Swagger написать документацию
-    //TODO Validated настроить валидацию на уровне контроллера
-    
+
 }

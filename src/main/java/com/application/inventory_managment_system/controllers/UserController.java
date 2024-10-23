@@ -2,9 +2,12 @@ package com.application.inventory_managment_system.controllers;
 
 
 import com.application.inventory_managment_system.mappers.UserMapper;
+import com.application.inventory_managment_system.model.dto.request.UserRequest;
+import com.application.inventory_managment_system.model.dto.response.MessageResponse;
 import com.application.inventory_managment_system.model.dto.response.UserResponse;
-import com.application.inventory_managment_system.model.entities.User;
+import com.application.inventory_managment_system.model.view.UserView;
 import com.application.inventory_managment_system.services.UserService;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,7 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,9 +33,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
-//TODO Добавить валидацию
 @RestController
 @RequestMapping("/api")
+@Validated
 @RequiredArgsConstructor
 @Tag(name = "Контроллер профиля пользователя", description = "API по работе с профилем пользователя")
 public class UserController {
@@ -62,51 +67,93 @@ public class UserController {
         responses = {
             @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = {
                 @Content(examples = {
-                    @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Товар не найден\"}")
+                    @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Пользователь не найден\"}")
                 })
             }),
-            @ApiResponse(responseCode = "200", description = "OK")
+            @ApiResponse(responseCode = "200", description = "Пользователь найден")
         }
     )
-    public ResponseEntity<UserResponse> findById(@RequestParam Long id){
-        if (id == null) {
-            System.out.println("Id не может быть null");
-            return null;
-        }
-        return ResponseEntity.ok(userMapper.toUserResponse(userService.getUserById(id)));
+    public ResponseEntity<UserResponse> findById(@RequestParam @Validated Long id){
+        return ResponseEntity.ok(userMapper.toUserResponse
+         (userService.getUserById(id)));
     }
 
     //Не в get запросах использовать @RequestBody и @PathVariable
     @PostMapping(value = "/user/add", consumes = "application/json", produces = "application/json")
-    public User createUser(@RequestBody User user) {
-        if (user == null) {
-            System.out.println("user не можеть быть null");
-            return null;
+    @Operation(
+        summary = "Регистрация пользователя",
+        description = "POST API запрос на регистрацию ползователя",
+        responses = {
+            @ApiResponse(responseCode = "201", description = "Пользователь зарегестрирован")
         }
-
-        userService.addUser(user);
-        return userService.getUserById(user.getId());
-    }
-
-    //TODO добавить PUT запрос
-    //TODO Jackson реализовать новые requestDTO и @JsonView
-    //TODO Swagger написать документацию
-    //TODO Validated настроить валидацию на уровне контроллера
-    @PutMapping("user/update/{id}")
-    public User putMethodName(@PathVariable Long id, @RequestBody User user) {
-       
+    )
+    public ResponseEntity<MessageResponse> createUser(@RequestBody @Validated @JsonView(UserView.CreateUser.class) UserRequest userRequest) {
         
-        return userService.getUserById(id);
+        return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(new MessageResponse(
+            userService.addUser(
+                userMapper.toUser(userRequest)
+            )
+        ));
     }
 
-    //TODO Swagger написать документацию
-    @DeleteMapping("/user/{id}")
-    public String deleteUser(@PathVariable Long id){
-        if (id == null) {
-            return "Id не может быть null";
+
+    
+    @PutMapping("user/update/data/{id}")
+    @Operation(
+        summary = "Редактирование пользователя",
+        description = "PUT API запрос на редактирование ползователя",
+        responses = {
+            @ApiResponse(responseCode = "202", description = "Пользователь отредактирован")
         }
-        userService.deleteUserById(id);
-        return "Deleted user with id - " + id;
+    )
+    public ResponseEntity<UserResponse> updateUserDataById(@PathVariable Long id, @RequestBody @Validated @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
+        
+        
+        return ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .body(
+            userMapper.toUserResponse(
+                    userService.updateUserData(id,userRequest)
+                )
+            );
+    }
+
+    //TODO посмотреть groups Validation. Можно использовать те же самые классы, что и для JsonView
+    @PutMapping("user/update/password/{id}")
+    @Operation(
+        summary = "Редактирование пароля пользователя",
+        description = "PUT API запрос на редактирование ползователя",
+        responses = {
+            @ApiResponse(responseCode = "202", description = "Пароль пользователя отредактирован")
+        }
+    )
+    public ResponseEntity<UserResponse> updateUserPassword(@PathVariable Long id, @RequestBody @JsonView(UserView.UpdateUserPassword.class) @Validated UserRequest userRequest) {
+        
+        return ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .body(userMapper.toUserResponse(
+                    userService.updateUserData(id, userRequest)
+                )
+            );
+    }
+
+
+  
+    @DeleteMapping("/user/delete/{id}")
+    @Operation(
+        summary = "Удаление пользователя",
+        description = "DELETE API запрос на удаление пользователя по id",
+        responses = {
+            @ApiResponse(responseCode = "204", description = "Пользователь удален")
+    })
+    public ResponseEntity<String> deleteUser(@PathVariable @Validated Long id){
+
+        
+        return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .body(userService.deleteUserById(id));
     }
 
 

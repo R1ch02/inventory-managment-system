@@ -12,8 +12,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,8 +20,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "users")
 @Entity
 public class User {
@@ -32,16 +31,15 @@ public class User {
     @Comment("ID пользователя")
     private Long id;
 
-    @NotNull
+    @NotBlank
     @Comment("Логин пользователя")
     private String username;
 
-    @NotNull
+    @NotBlank
     @Comment("Email пользователя")
     private String email;
 
-    @NotNull
-    @NotEmpty
+    @NotBlank
     @Comment("Пароль пользователя")
     private String password;
 

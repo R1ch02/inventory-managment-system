@@ -12,6 +12,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -33,10 +35,11 @@ public class Product {
     @Comment("ID товара")
     private Long id;
 
-    @NotNull
+    @NotBlank
     @Comment("Название товара")
     private String name;
 
+    @NotNull
     @Comment("Описание товара")
     private String description;
 
