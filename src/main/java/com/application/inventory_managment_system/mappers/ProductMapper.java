@@ -25,4 +25,6 @@ public interface ProductMapper{
 
     void updateProductFromDto(ProductRequest dto, @MappingTarget Product product);
 
+    Product toProduct(ProductRequest productRequest);
+
 } 

@@ -15,7 +15,6 @@ public class MessageResponse {
     public Object message;
 
     @Schema(description = "Если есть ошибка, то указывает тело ошибки, в случае успеха, это поле отсутствует")
-    //TODO @JsonInclude
     public Object error;
 
     public MessageResponse(Object message){

@@ -6,6 +6,8 @@ import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.application.inventory_managment_system.model.view.UserView;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,15 +33,15 @@ public class User {
     @Comment("ID пользователя")
     private Long id;
 
-    @NotBlank
+    @NotBlank(groups = { UserView.CreateUser.class, UserView.UpdateUser.class })
     @Comment("Логин пользователя")
     private String username;
 
-    @NotBlank
+    @NotBlank(groups = { UserView.CreateUser.class, UserView.UpdateUser.class })
     @Comment("Email пользователя")
     private String email;
 
-    @NotBlank
+    @NotBlank(groups = UserView.UpdateUserPassword.class)
     @Comment("Пароль пользователя")
     private String password;
 

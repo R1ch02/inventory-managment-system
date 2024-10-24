@@ -25,23 +25,31 @@ public class UserService {
     private final UserMapper userMapper;
     
 
-    public User getUserById(Long id){ 
-        return userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден пользователь с id - " + id, HttpStatus.NOT_FOUND));
+    public User findUserById(Long id){ 
+        return userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден пользователь с id = " + id, HttpStatus.NOT_FOUND));
     }
 
     @Transactional
     public User addUser(User user){
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new ApiServiceException("Пользователь с таким логином уже существует", HttpStatus.CONFLICT);
+        }
+        if (userRepository.existsByEmail(user.getEmail())) {
+            
+            throw new ApiServiceException("Пользователь с таким email уже существует", HttpStatus.CONFLICT);
+        }
         return userRepository.save(user);
     }
 
     //TODO Добавить в репозиторий метод deleteById, который возвращал бы boolean
     @Transactional
-    public String deleteUserById(Long id){
-        //Начало костыля
-        User user = userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден пользователь с id - " + id, HttpStatus.NOT_FOUND));
-        //Конец костыля
-        userRepository.deleteById(id);
-        return "Пользователь с id - " + id + " удален";
+    public Boolean deleteUserById(Long id){
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        } else {
+            throw new ApiServiceException("Не найден пользователь с id = " + id, HttpStatus.NOT_FOUND);
+        }
     }
 
     public Page<User> findAllUsers(Pageable pageable){
@@ -51,8 +59,25 @@ public class UserService {
 
     @Transactional
     public User updateUserData(Long id, UserRequest userRequest) {
-        User updatedUser = userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Пользователь не найден", HttpStatus.NOT_FOUND));
+        
+        if (userRepository.existsByUsername(userRequest.getUsername())) {
+            throw new ApiServiceException("Пользователь с таким логином уже существует", HttpStatus.CONFLICT);
+        }
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new ApiServiceException("Пользователь с таким email уже существует", HttpStatus.CONFLICT);
+        }
+
+        User updatedUser = userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден пользователь с id = " + id, HttpStatus.NOT_FOUND));
+
         userMapper.updateUserFromDto(userRequest,updatedUser);
+        
+        return userRepository.save(updatedUser);
+    }
+
+    @Transactional
+    public User updateUserPassword(Long id, UserRequest userRequest) {
+        User updatedUser = userRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден пользователь с id = " + id, HttpStatus.NOT_FOUND));
+        userMapper.updateUserPasswordFromDto(userRequest,updatedUser);
         
         return userRepository.save(updatedUser);
     }

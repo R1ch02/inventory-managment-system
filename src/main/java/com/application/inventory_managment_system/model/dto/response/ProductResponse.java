@@ -10,6 +10,9 @@ import lombok.Setter;
 public class ProductResponse {
 
 
+    @Schema(description = "Id товара", example = "42")
+    private Long id;
+
     @Schema(description = "Название товара", example = "Круасан")
     private String name;
 

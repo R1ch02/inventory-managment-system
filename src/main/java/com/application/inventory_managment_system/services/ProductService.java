@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.application.inventory_managment_system.exceptions.ApiServiceException;
 import com.application.inventory_managment_system.mappers.ProductMapper;
@@ -20,30 +21,34 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    public Product getProductById(Long id){
-        if (id == null) {
-            throw new ApiServiceException("Id продукта не может быть null", HttpStatus.BAD_REQUEST);
+    public Product findProductById(Long id){
+        return productRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден продукт с id = " + id, HttpStatus.NOT_FOUND));
+    }
+
+    @Transactional
+    public Product addProduct(Product product){
+        return productRepository.save(product);
+    }
+
+    @Transactional
+    public Boolean deleteProductById(Long id){
+        if (productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+            return true;
+        } else {
+            throw new ApiServiceException("Не найден продукт с id = " + id, HttpStatus.NOT_FOUND);
         }
-        
-        return productRepository.findById(id).orElseThrow(() -> new ApiServiceException("Продукт не найден", HttpStatus.NOT_FOUND));
     }
 
-
-    public void addProduct(Product product){
-        productRepository.save(product);
-    }
-
-    public void deleteProductById(Long id){
-        productRepository.deleteById(id);
-    }
-
+    @Transactional
     public Page<Product> findAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
+    @Transactional
     public Product updateProductData(Long id, ProductRequest productRequest){
         Product updatedProduct = productRepository.findById(id)
-        .orElseThrow(() -> new ApiServiceException("Продукт не найден", HttpStatus.NOT_FOUND));
+        .orElseThrow(() -> new ApiServiceException("Не найден продукт с id = " + id, HttpStatus.NOT_FOUND));
 
         productMapper.updateProductFromDto(productRequest, updatedProduct);
         return updatedProduct;
