@@ -287,12 +287,23 @@ public class UserController {
                                                 "}")
                 })
             }),
+            @ApiResponse(responseCode = "400", description = "Введен невалидный id пользователя", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": {\r\n" + //
+                                                "    \"deleteUserById.id\": \"Id должно быть больше 0\"\r\n" + //
+                                                "  }\r\n" + //
+                                                "}")
+                })
+            }),
             @ApiResponse(responseCode = "200", description = "Пользователь удален", content = {
                 @Content(examples = {
                     @ExampleObject(value = "Пользователь с id '1' удален: true")
                 })
             })
-    })
+    }
+    )
     public ResponseEntity<String> deleteUser(@PathVariable @Parameter(description = "ID пользователя") @Validated @Positive Long id){
 
         return ResponseEntity

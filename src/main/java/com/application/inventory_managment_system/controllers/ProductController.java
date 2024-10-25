@@ -56,6 +56,16 @@ public class ProductController {
                     @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Товар не найден\"}")
                 })
             }),
+            @ApiResponse(responseCode = "400", description = "Введен невалидный id товар", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": {\r\n" + //
+                                                "    \"findProductById.id\": \"Id должно быть больше 0\"\r\n" + //
+                                                "  }\r\n" + //
+                                                "}")
+                })
+            }),
             @ApiResponse(responseCode = "200", description = "OK")
         }
     )
@@ -84,8 +94,47 @@ public class ProductController {
     @Operation(
         summary = "Регистрация товара",
         description = "POST API запрос на регистрацию товара.",
-        responses = {
-            @ApiResponse(responseCode = "201", description = "Товар зарегестрирован")
+        responses = {            
+        @ApiResponse(responseCode = "400", description = "Некорректный запрос", content = {
+            @Content(examples = {
+                @ExampleObject(name = "Остутствуют поля", value = "{\r\n" + //
+                                            "  \"message\": \"Error\",\r\n" + //
+                                            "  \"error\": \"Некорректное тело запроса. Не обозначены обязательные поля\"\r\n" + //
+                                            "}"),
+                @ExampleObject(name = "Не валидные поля", value = "{\r\n" + //
+                                        "  \"message\": \"Error\",\r\n" + //
+                                        "  \"error\": {\r\n" + //
+                                        "    \"quantity\": \"должно быть больше или равно 0\",\r\n" + //
+                                        "    \"price\": \"должно быть больше 0\",\r\n" + //
+                                        "    \"name\": \"не должно быть пустым\"\r\n" + //
+                                        "  }\r\n" + //
+                                        "}")
+            })
+        }),
+        @ApiResponse(responseCode = "409", description = "Товар с уникальным типом данных уже существует", content = {
+            @Content(examples = {
+                @ExampleObject(name = "Логин занят", value = "{\r\n" + //
+                                            "  \"message\": \"Error\",\r\n" + //
+                                            "  \"error\": \"Товар с таким названием уже существует\"\r\n" + //
+                                            "}")
+            })
+        }),
+        @ApiResponse(responseCode = "201", description = "Товар зарегестрирован", content = {
+            @Content(examples = {
+                @ExampleObject(value =  "{\r\n" + //
+                                        "  \"message\": {\r\n" + //
+                                        "    \"id\": 1,\r\n" + //
+                                        "    \"name\": \"Круасан\",\r\n" + //
+                                        "    \"description\": \"Круасан 7 DAYS с клубничной начинкой\",\r\n" + //
+                                        "    \"price\": 79.99,\r\n" + //
+                                        "    \"quantity\": 20,\r\n" + //
+                                        "    \"creationDateTime\": \"2024-10-25T09:18:10.196776\",\r\n" + //
+                                        "    \"lastUpDateTime\": \"2024-10-25T09:18:10.19783\"\r\n" + //
+                                        "  },\r\n" + //
+                                        "  \"error\": null\r\n" + //
+                                        "}")
+            })
+        })
         })
     public ResponseEntity<MessageResponse> createProduct(@RequestBody @Validated @JsonView(ProductView.CreateProduct.class) ProductRequest productRequest) {
         
@@ -104,7 +153,52 @@ public class ProductController {
         summary = "Редактирование товара",
         description = "PUT API запрос на редактирование товара",
         responses = {
-            @ApiResponse(responseCode = "202", description = "Товар зарегестрирован")
+            @ApiResponse(responseCode = "400", description = "Некорректный запрос", content = {
+                @Content(examples = {
+                    @ExampleObject(name = "Отсутствуют поля", value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": \"Некорректное тело запроса. Не обозначены обязательные поля\"\r\n" + //
+                                                "}"),
+                    @ExampleObject(name = "Id > 0",value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": {\r\n" + //
+                                                "    \"putMethodName.id\": \"Id должно быть больше 0\"\r\n" + //
+                                                "  }\r\n" + //
+                                                "}"),
+                    @ExampleObject(name = "Не валидные поля", value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": {\r\n" + //
+                                                "    \"quantity\": \"должно быть больше или равно 0\",\r\n" + //
+                                                "    \"price\": \"должно быть больше 0\",\r\n" + //
+                                                "    \"name\": \"не должно быть пустым\"\r\n" + //
+                                                "  }\r\n" + //
+                                                "}")
+                })
+            }),
+            @ApiResponse(responseCode = "404", description = "Товар не найден", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Товар не найден\"}")
+                })
+            }),
+            @ApiResponse(responseCode = "409", description = "Товар с уникальным типом данных уже существует", content = {
+                @Content(examples = {
+                    @ExampleObject(name = "Товар существует", value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": \"Товар с таким названием уже существует\"\r\n" + //
+                                                "}")
+                })
+            }),
+            @ApiResponse(responseCode = "202", description = "Товар отредактирован", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\r\n" + //
+                                                "  \"id\": 1,\r\n" + //
+                                                "  \"name\": \"Круасан\",\r\n" + //
+                                                "  \"description\": \"Круасан 7 DAYS с ванильной начинкой\",\r\n" + //
+                                                "  \"price\": 60.01,\r\n" + //
+                                                "  \"quantity\": 10\r\n" + //
+                                                "}")
+                })
+            })
         }
     )
     public ResponseEntity<ProductResponse> putMethodName(@PathVariable @Positive Long id, @RequestBody @Validated @JsonView(ProductView.UpdateProductData.class) ProductRequest productRequest) {
@@ -123,8 +217,30 @@ public class ProductController {
         summary = "Удаление товара",
         description = "DELETE API запрос на удаление товара по id",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Товар удален")
-        }
+            @ApiResponse(responseCode = "404", description = "Товар не найден", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": \"Не найден товар с id = 2\"\r\n" + //
+                                                "}")
+                })
+            }),
+            @ApiResponse(responseCode = "400", description = "Введен невалидный id товара", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "{\r\n" + //
+                                                "  \"message\": \"Error\",\r\n" + //
+                                                "  \"error\": {\r\n" + //
+                                                "    \"findProductById.id\": \"Id должно быть больше 0\"\r\n" + //
+                                                "  }\r\n" + //
+                                                "}")
+                })
+            }),
+            @ApiResponse(responseCode = "200", description = "Товар удален", content = {
+                @Content(examples = {
+                    @ExampleObject(value = "Товар с id '1' удален: true")
+                })
+            })
+    }
     )
     public ResponseEntity<String> deleteProductById(@PathVariable @Parameter(description = "ID товара") @Validated @Positive Long id){
         
