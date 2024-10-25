@@ -27,6 +27,9 @@ public class ProductService {
 
     @Transactional
     public Product addProduct(Product product){
+        if(productRepository.existsByName(product.getName())){
+            throw new ApiServiceException("Товар с таким названием уже существует", HttpStatus.CONFLICT);
+        }
         return productRepository.save(product);
     }
 
@@ -45,8 +48,12 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
+    //Сравнение с самим собой?
     @Transactional
     public Product updateProductData(Long id, ProductRequest productRequest){
+        if(productRepository.existsByName(productRequest.getName())){
+            throw new ApiServiceException("Товар с таким названием уже существует", HttpStatus.CONFLICT);
+        }
         Product updatedProduct = productRepository.findById(id)
         .orElseThrow(() -> new ApiServiceException("Не найден продукт с id = " + id, HttpStatus.NOT_FOUND));
 
