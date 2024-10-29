@@ -1,5 +1,7 @@
 package com.application.inventory_managment_system.services;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -10,8 +12,9 @@ import com.application.inventory_managment_system.exceptions.ApiServiceException
 import com.application.inventory_managment_system.mappers.ProductMapper;
 import com.application.inventory_managment_system.model.dto.request.ProductRequest;
 import com.application.inventory_managment_system.model.entities.Product;
+import com.application.inventory_managment_system.model.entities.User;
 import com.application.inventory_managment_system.repositories.ProductRepository;
-
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -20,6 +23,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final UserService userService;
 
     public Product findProductById(Long id){
         return productRepository.findById(id).orElseThrow(() -> new ApiServiceException("Не найден продукт с id = " + id, HttpStatus.NOT_FOUND));
@@ -35,7 +39,11 @@ public class ProductService {
 
     @Transactional
     public Boolean deleteProductById(Long id){
-        if (productRepository.existsById(id)) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            for (User user : product.get().getUsers()) {
+                user.getProducts().remove(product);
+            }
             productRepository.deleteById(id);
             return true;
         } else {
@@ -59,6 +67,14 @@ public class ProductService {
 
         productMapper.updateProductFromDto(productRequest, updatedProduct);
         return updatedProduct;
+    }
+
+    @Transactional
+    public Product buyProductByName(@NotBlank String name) {
+        Product product = productRepository.findByName(name).orElseThrow(() -> new ApiServiceException("Товар с таким названием не найден", HttpStatus.NOT_FOUND));
+        product.setQuantity(product.getQuantity()-1);
+        product.getUsers().add(userService.getUserFromSecurityContext());
+        return productRepository.save(product);
     }
 
    

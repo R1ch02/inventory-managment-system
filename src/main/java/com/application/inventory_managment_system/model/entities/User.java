@@ -1,27 +1,34 @@
 package com.application.inventory_managment_system.model.entities;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import com.application.inventory_managment_system.model.view.UserView;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
@@ -29,9 +36,9 @@ import lombok.Setter;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Comment("ID пользователя")
-    private Long id;
+    private UUID id;
 
     @NotBlank(groups = { UserView.CreateUser.class, UserView.UpdateUser.class })
     @Comment("Логин пользователя")
@@ -41,9 +48,10 @@ public class User {
     @Comment("Email пользователя")
     private String email;
 
-    @NotBlank(groups = UserView.UpdateUserPassword.class)
-    @Comment("Пароль пользователя")
-    private String password;
+    @NotNull
+    @Comment("Список товаров, которые покупал пользователь")
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private List<Product> products;
 
     @CreationTimestamp
     @Comment("Дата и время регистрации пользователя")

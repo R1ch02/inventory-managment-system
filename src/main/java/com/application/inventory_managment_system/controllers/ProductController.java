@@ -16,7 +16,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +26,11 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +51,8 @@ public class ProductController {
     private final ProductMapper productMapper;
 
     @GetMapping("/product")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Вывод продукта",
         description = "GET API запрос на получение товара по ID",
@@ -76,6 +82,8 @@ public class ProductController {
     }
 
     @GetMapping("/products")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin') or hasRole('ims-guest')")
     @Operation(
         summary = "Вывод продуктов",
         description = "GET API запрос на постраничный вывод продуктов",
@@ -91,6 +99,8 @@ public class ProductController {
 
 
     @PostMapping("/product/add")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Регистрация товара",
         description = "POST API запрос на регистрацию товара.",
@@ -149,6 +159,8 @@ public class ProductController {
     }
 
     @PutMapping("product/update/{id}")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Редактирование товара",
         description = "PUT API запрос на редактирование товара",
@@ -213,6 +225,8 @@ public class ProductController {
 
 
     @DeleteMapping("product/delete/{id}")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Удаление товара",
         description = "DELETE API запрос на удаление товара по id",
@@ -248,6 +262,15 @@ public class ProductController {
         .status(HttpStatus.OK)
         .body("Товар с id '" + id + "' удален: " + productService.deleteProductById(id)
         );
+    }
+
+    //Add User
+    @PatchMapping("/product/buy/{name}")
+    public ResponseEntity<ProductResponse> buyProductByName(@PathVariable @Parameter(description = "Название товара") @Validated @NotBlank String name){
+        return ResponseEntity
+        .status(HttpStatus.ACCEPTED)
+        .body(productMapper.toProductResponse(productService.buyProductByName(name)
+        ));
     }
     
 

@@ -1,5 +1,9 @@
 package com.application.inventory_managment_system.model.dto.response;
 
+import java.util.List;
+
+import com.application.inventory_managment_system.model.entities.User;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +28,9 @@ public class ProductResponse {
 
     @Schema(description = "Количество товара в наличии", example = "20")
     private int quantity;
+
+    @Schema(description = "Список пользователей, покупающих этот продукт")
+    private List<User> users;
 
 
     

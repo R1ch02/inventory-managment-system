@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,6 +47,8 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping("/users")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Вывод всех пользователей",
         description = "GET API запрос на постраничный вывод пользователей",
@@ -63,7 +66,9 @@ public class UserController {
     
     //В get запросе использовать @RequestParam 
 
-    @GetMapping("/user")
+    @GetMapping("/user/info")
+    @PreAuthorize("hasRole('ims-admin')")
+    @SecurityRequirement(name = "OAuthUser")
     @Operation(
         summary = "Вывод пользователя",
         description = "GET API запрос на получение пользователя по ID",
@@ -86,14 +91,16 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Пользователь найден")
         }
     )
-    public ResponseEntity<UserResponse> findById(@RequestParam @Positive Long id){
+    public ResponseEntity<UserResponse> getUser(){
         return ResponseEntity
         .status(HttpStatus.OK)
-        .body(userMapper.toUserResponse(userService.findUserById(id)));
+        .body(userMapper.toUserResponse(userService.getUserFromSecurityContext()));
     }
 
     //Не в get запросах использовать @RequestBody и @PathVariable
     @PostMapping(value = "/user/add", consumes = "application/json", produces = "application/json")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Регистрация пользователя",
         description = "POST API запрос на регистрацию ползователя",
@@ -143,7 +150,7 @@ public class UserController {
         }
     )
     public ResponseEntity<MessageResponse> createUser(@RequestBody @Validated @JsonView(UserView.CreateUser.class) UserRequest userRequest) {
-        
+
         return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(new MessageResponse(
@@ -155,7 +162,9 @@ public class UserController {
 
 
     
-    @PutMapping("user/update/data/{id}")
+    @PutMapping("user/update/data")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Редактирование пользователя",
         description = "PUT API запрос на редактирование ползователя",
@@ -209,72 +218,23 @@ public class UserController {
             })
         }
     )
-    public ResponseEntity<UserResponse> updateUserDataById(@PathVariable @Positive Long id, @RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
+    public ResponseEntity<UserResponse> updateUserDataByName(@RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
         
         
         return ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .body(
             userMapper.toUserResponse(
-                    userService.updateUserData(id,userRequest)
+                    userService.updateUserData(userRequest)
                 )
             );
     }
 
-    @PutMapping("user/update/password/{id}")
-    @Operation(
-        summary = "Редактирование пароля пользователя",
-        description = "PUT API запрос на редактирование ползователя",
-        responses = {
-            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = {
-                @Content(examples = {
-                    @ExampleObject(value = "{\"message\": \"Error\", \"error\": \"Пользователь не найден\"}")
-                })
-            }),
-            @ApiResponse(responseCode = "400", description = "Некорректный запрос", content = {
-                @Content(examples = {
-                    @ExampleObject(name = "Отсутствуют поля" ,value = "{\r\n" + //
-                                                "  \"message\": \"Error\",\r\n" + //
-                                                "  \"error\": \"Некорректное тело запроса. Не введен новый password\"\r\n" + //
-                                                "}"),
-                    @ExampleObject(name = "Id > 0", value = "{\r\n" + //
-                                                "  \"message\": \"Error\",\r\n" + //
-                                                "  \"error\": {\r\n" + //
-                                                "    \"updateUserDataById.id\": \"должно быть больше 0\"\r\n" + //
-                                                "  }\r\n" + //
-                                                "}"),
-                    @ExampleObject(name = "Не валидные поля", value = "{\r\n" + //
-                                                "  \"message\": \"Error\",\r\n" + //
-                                                "  \"error\": {\r\n" + //
-                                                "    \"password\": \"длина должна составлять от 6 до 20\"\r\n" + //
-                                                "  }\r\n" + //
-                                                "}")
-                })
-            }),
-            @ApiResponse(responseCode = "202", description = "Пароль пользователь отредактирован", content = {
-                @Content(examples = {
-                    @ExampleObject(value = "{\r\n" + //
-                                                "  \"id\": 1,\r\n" + //
-                                                "  \"username\": \"Alexey1999\",\r\n" + //
-                                                "  \"email\": \"example@ex.ru\"\r\n" + //
-                                                "}")
-
-                })
-            })
-        }
-    )
-    public ResponseEntity<UserResponse> updateUserPassword(@PathVariable @Positive Long id, @RequestBody @JsonView(UserView.UpdateUserPassword.class) @Validated(UserView.UpdateUserPassword.class) UserRequest userRequest) {
-        
-        return ResponseEntity
-            .status(HttpStatus.ACCEPTED)
-            .body(userMapper.toUserResponse(
-                    userService.updateUserPassword(id, userRequest)
-                )
-            );
-    }
 
   
-    @DeleteMapping("/user/delete/{id}")
+    @DeleteMapping("/user/delete/{username}")
+    @SecurityRequirement(name = "OAuthUser")
+    @PreAuthorize("hasRole('ims-admin')")
     @Operation(
         summary = "Удаление пользователя",
         description = "DELETE API запрос на удаление пользователя по id",
@@ -304,11 +264,11 @@ public class UserController {
             })
     }
     )
-    public ResponseEntity<String> deleteUser(@PathVariable @Parameter(description = "ID пользователя") @Validated @Positive Long id){
+    public ResponseEntity<String> deleteUser(@PathVariable @Parameter(description = "ID пользователя") @Validated @Positive String username){
 
         return ResponseEntity
         .status(HttpStatus.OK)
-        .body("Пользователь с id '" + id + "' удален: " + userService.deleteUserById(id));
+        .body("Пользователь с username '" + username + "' удален: " + userService.deleteUserByUsername(username));
     }
 
 

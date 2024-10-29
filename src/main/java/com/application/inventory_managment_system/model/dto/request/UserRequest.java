@@ -17,7 +17,7 @@ public class UserRequest {
     @NotBlank(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
     @Length(min = 3, max = 30, groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
     @Schema(description = "Логин пользователя", example = "Alexey1999")
-    @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
+    @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class})
     private String username;
 
     @NotBlank(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
@@ -26,11 +26,6 @@ public class UserRequest {
     @Schema(description = "Электронный адрес пользователя", example = "example@ex.ru")
     @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
     private String email;
-
-    @NotBlank(groups = {UserView.CreateUser.class, UserView.UpdateUserPassword.class})
-    @Length(min = 6, max = 20, groups = {UserView.CreateUser.class, UserView.UpdateUserPassword.class})
-    @JsonView({UserView.CreateUser.class, UserView.UpdateUserPassword.class})
-    private String password;
 
 
 
