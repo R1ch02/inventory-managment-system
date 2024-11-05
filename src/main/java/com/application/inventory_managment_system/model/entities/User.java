@@ -1,6 +1,7 @@
 package com.application.inventory_managment_system.model.entities;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,8 +14,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
@@ -25,18 +24,18 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Builder.Default;
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
 @Entity
+@Builder
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     @Comment("ID пользователя")
     private UUID id;
 
@@ -49,9 +48,10 @@ public class User {
     private String email;
 
     @NotNull
+    @Default
     @Comment("Список товаров, которые покупал пользователь")
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    private List<Product> products;
+    private List<Product> products = new ArrayList<>();
 
     @CreationTimestamp
     @Comment("Дата и время регистрации пользователя")

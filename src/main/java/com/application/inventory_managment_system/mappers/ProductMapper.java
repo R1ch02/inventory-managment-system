@@ -19,6 +19,7 @@ import java.util.List;
     ) 
 public interface ProductMapper{
 
+
     ProductResponse toProductResponse(Product product);
 
     List<ProductResponse> toProductResponseList(List<Product> products);

@@ -14,7 +14,6 @@ import com.application.inventory_managment_system.model.dto.request.ProductReque
 import com.application.inventory_managment_system.model.entities.Product;
 import com.application.inventory_managment_system.model.entities.User;
 import com.application.inventory_managment_system.repositories.ProductRepository;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -69,13 +68,13 @@ public class ProductService {
         return updatedProduct;
     }
 
-    @Transactional
-    public Product buyProductByName(@NotBlank String name) {
-        Product product = productRepository.findByName(name).orElseThrow(() -> new ApiServiceException("Товар с таким названием не найден", HttpStatus.NOT_FOUND));
-        product.setQuantity(product.getQuantity()-1);
-        product.getUsers().add(userService.getUserFromSecurityContext());
-        return productRepository.save(product);
-    }
+    // @Transactional
+    // public Product buyProductByName(@NotBlank String name) {
+    //     Product product = productRepository.findByName(name).orElseThrow(() -> new ApiServiceException("Товар с таким названием не найден", HttpStatus.NOT_FOUND));
+    //     product.setQuantity(product.getQuantity()-1);
+    //     product.getUsers().add(userService.createUserFromSecurityContext());
+    //     return productRepository.save(product);
+    // }
 
    
 

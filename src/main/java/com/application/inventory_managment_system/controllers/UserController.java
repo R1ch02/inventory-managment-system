@@ -10,13 +10,11 @@ import com.application.inventory_managment_system.services.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 
 import org.springdoc.core.annotations.ParameterObject;
@@ -26,9 +24,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,7 +44,7 @@ public class UserController {
 
     @GetMapping("/users")
     @SecurityRequirement(name = "OAuthUser")
-    @PreAuthorize("hasRole('ims-admin')")
+    @PreAuthorize("hasRole('realm_ims-admin')")
     @Operation(
         summary = "Вывод всех пользователей",
         description = "GET API запрос на постраничный вывод пользователей",
@@ -57,6 +53,8 @@ public class UserController {
         }
     )
     public ResponseEntity<Page<UserResponse>> findAllUsers(@ParameterObject Pageable pageable){
+
+        userService.persistOrUpdateUser();
 
         return ResponseEntity
         .status(HttpStatus.OK)
@@ -67,7 +65,7 @@ public class UserController {
     //В get запросе использовать @RequestParam 
 
     @GetMapping("/user/info")
-    @PreAuthorize("hasRole('ims-admin')")
+    @PreAuthorize("hasRole('realm_ims-admin')")
     @SecurityRequirement(name = "OAuthUser")
     @Operation(
         summary = "Вывод пользователя",
@@ -94,13 +92,13 @@ public class UserController {
     public ResponseEntity<UserResponse> getUser(){
         return ResponseEntity
         .status(HttpStatus.OK)
-        .body(userMapper.toUserResponse(userService.getUserFromSecurityContext()));
+        .body(userMapper.toUserResponse(userService.persistOrUpdateUser()));
     }
 
     //Не в get запросах использовать @RequestBody и @PathVariable
     @PostMapping(value = "/user/add", consumes = "application/json", produces = "application/json")
     @SecurityRequirement(name = "OAuthUser")
-    @PreAuthorize("hasRole('ims-admin')")
+    @PreAuthorize("hasRole('realm_ims-admin')")
     @Operation(
         summary = "Регистрация пользователя",
         description = "POST API запрос на регистрацию ползователя",
@@ -151,6 +149,8 @@ public class UserController {
     )
     public ResponseEntity<MessageResponse> createUser(@RequestBody @Validated @JsonView(UserView.CreateUser.class) UserRequest userRequest) {
 
+        userService.persistOrUpdateUser();
+
         return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(new MessageResponse(
@@ -162,7 +162,7 @@ public class UserController {
 
 
     
-    @PutMapping("user/update/data")
+    @PutMapping("user/update")
     @SecurityRequirement(name = "OAuthUser")
     @PreAuthorize("hasRole('ims-admin')")
     @Operation(
@@ -220,7 +220,8 @@ public class UserController {
     )
     public ResponseEntity<UserResponse> updateUserDataByName(@RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
         
-        
+        userService.persistOrUpdateUser();
+
         return ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .body(
@@ -232,44 +233,44 @@ public class UserController {
 
 
   
-    @DeleteMapping("/user/delete/{username}")
-    @SecurityRequirement(name = "OAuthUser")
-    @PreAuthorize("hasRole('ims-admin')")
-    @Operation(
-        summary = "Удаление пользователя",
-        description = "DELETE API запрос на удаление пользователя по id",
-        responses = {
-            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = {
-                @Content(examples = {
-                    @ExampleObject(value = "{\r\n" + //
-                                                "  \"message\": \"Error\",\r\n" + //
-                                                "  \"error\": \"Не найден пользователь с id = 2\"\r\n" + //
-                                                "}")
-                })
-            }),
-            @ApiResponse(responseCode = "400", description = "Введен невалидный id пользователя", content = {
-                @Content(examples = {
-                    @ExampleObject(value = "{\r\n" + //
-                                                "  \"message\": \"Error\",\r\n" + //
-                                                "  \"error\": {\r\n" + //
-                                                "    \"deleteUserById.id\": \"Id должно быть больше 0\"\r\n" + //
-                                                "  }\r\n" + //
-                                                "}")
-                })
-            }),
-            @ApiResponse(responseCode = "200", description = "Пользователь удален", content = {
-                @Content(examples = {
-                    @ExampleObject(value = "Пользователь с id '1' удален: true")
-                })
-            })
-    }
-    )
-    public ResponseEntity<String> deleteUser(@PathVariable @Parameter(description = "ID пользователя") @Validated @Positive String username){
+    // @DeleteMapping("/user/delete/{username}")
+    // @SecurityRequirement(name = "OAuthUser")
+    // @PreAuthorize("hasRole('ims-admin')")
+    // @Operation(
+    //     summary = "Удаление пользователя",
+    //     description = "DELETE API запрос на удаление пользователя по id",
+    //     responses = {
+    //         @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = {
+    //             @Content(examples = {
+    //                 @ExampleObject(value = "{\r\n" + //
+    //                                             "  \"message\": \"Error\",\r\n" + //
+    //                                             "  \"error\": \"Не найден пользователь с id = 2\"\r\n" + //
+    //                                             "}")
+    //             })
+    //         }),
+    //         @ApiResponse(responseCode = "400", description = "Введен невалидный id пользователя", content = {
+    //             @Content(examples = {
+    //                 @ExampleObject(value = "{\r\n" + //
+    //                                             "  \"message\": \"Error\",\r\n" + //
+    //                                             "  \"error\": {\r\n" + //
+    //                                             "    \"deleteUserById.id\": \"Id должно быть больше 0\"\r\n" + //
+    //                                             "  }\r\n" + //
+    //                                             "}")
+    //             })
+    //         }),
+    //         @ApiResponse(responseCode = "200", description = "Пользователь удален", content = {
+    //             @Content(examples = {
+    //                 @ExampleObject(value = "Пользователь с id '1' удален: true")
+    //             })
+    //         })
+    // }
+    // )
+    // public ResponseEntity<String> deleteUser(@PathVariable @Parameter(description = "ID пользователя") @Validated @Positive String username){
 
-        return ResponseEntity
-        .status(HttpStatus.OK)
-        .body("Пользователь с username '" + username + "' удален: " + userService.deleteUserByUsername(username));
-    }
+    //     return ResponseEntity
+    //     .status(HttpStatus.OK)
+    //     .body("Пользователь с username '" + username + "' удален: " + userService.deleteUserByUsername(username));
+    // }
 
 
 
