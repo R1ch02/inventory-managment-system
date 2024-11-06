@@ -62,21 +62,20 @@ public class UserService {
             } 
         }
 
-        restService.createUser(getServiceAccessToken(), getUserRepresentationByAdminEntity(user));
+        restService.createUser(getServiceAccessToken(), getUserRepresentationByUser(user));
 
         return userRepository.save(user);
     }
 
-    private KeyCloakUserRepresentation getUserRepresentationByAdminEntity(User user) {
+    private KeyCloakUserRepresentation getUserRepresentationByUser(User user) {
         return KeyCloakUserRepresentation.builder()
             .email(user.getEmail())
-            .firstName(user.getUsername())
+            .username(user.getUsername())
             .emailVerified(true)
             .enabled(true)
             .build();
     }
 
-    // TODO Добавить в репозиторий метод deleteById, который возвращал бы boolean
     @Transactional
     public Boolean deleteUserByUsername(String username) {
         Optional<User> user = userRepository.findByUsername(username);
@@ -114,8 +113,6 @@ public class UserService {
         return userRepository.save(updatedUser);
     }
 
-    // Почему генерируется каждый раз новый ID пользователя, хотя он храниться в
-    // одном и том же токене
     @Transactional
     public User persistOrUpdateUser() {
         JwtAuthenticationToken token = (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
@@ -145,6 +142,7 @@ public class UserService {
     private String getServiceAccessToken() {
         Registration registration = oauthProperties.getRegistration().get("admin");
         Provider provider = oauthProperties.getProvider().get("keycloak-admin");
+        log.info(restService.getServiceAccessToken(registration, provider).getAccessToken());
         return restService.getServiceAccessToken(registration, provider).getAccessToken();
     }
 

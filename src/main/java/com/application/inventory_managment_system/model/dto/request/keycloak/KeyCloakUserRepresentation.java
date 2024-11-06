@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class KeyCloakUserRepresentation {
 
     private String email;
-    private String firstName;
+    private String username;
     private Boolean enabled;
     private Boolean emailVerified;
 

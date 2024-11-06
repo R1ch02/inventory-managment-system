@@ -93,6 +93,7 @@ public class RestService {
         requestBody.add("client_id", clientRegistration.getClientId());
         requestBody.add("grant_type", "client_credentials");
         requestBody.add("client_secret", clientRegistration.getClientSecret());
+        log.debug("{}", requestBody);
 
         return restClient
             .post()
@@ -106,5 +107,6 @@ public class RestService {
                     log.debug("{} - {} - {}", request.getMethod(), request.getURI(), response.getStatusCode());
             })
             .body(KeyCloakJwtResponse.class);
+            
     }
 }

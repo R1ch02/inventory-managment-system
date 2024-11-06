@@ -221,7 +221,7 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUserDataByName(@RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
         
         userService.persistOrUpdateUser();
-
+        
         return ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .body(

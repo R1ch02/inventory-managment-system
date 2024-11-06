@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 @Getter
@@ -26,6 +27,14 @@ public class UserRequest {
     @Schema(description = "Электронный адрес пользователя", example = "example@ex.ru")
     @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
     private String email;
+    
+    @NotNull(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
+    @Schema(description = "Действителен ли пользователь", example = "true")
+    private boolean enabled;
+
+    @NotNull(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
+    @Schema(description = "Подтвержден ли email", example = "false")
+    private boolean emailVerified;
 
 
 

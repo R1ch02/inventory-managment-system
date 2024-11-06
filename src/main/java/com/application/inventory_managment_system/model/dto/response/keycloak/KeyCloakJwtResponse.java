@@ -1,10 +1,14 @@
 package com.application.inventory_managment_system.model.dto.response.keycloak;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
 @Schema(description = "DTO по работе с ключами доступа")
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class KeyCloakJwtResponse {
 
 
@@ -17,7 +21,6 @@ public class KeyCloakJwtResponse {
 
     @Schema(description = "Время жизни ключа обновления")
     private Integer refreshExpiresIn;
-
 
     @Schema(description = "Ключ обновления")
     private String refreshToken;

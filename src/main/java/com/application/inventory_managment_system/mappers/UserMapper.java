@@ -4,6 +4,7 @@ package com.application.inventory_managment_system.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 import com.application.inventory_managment_system.model.dto.request.UserRequest;
@@ -14,7 +15,8 @@ import java.util.List;
 
 @Mapper(
     componentModel = MappingConstants.ComponentModel.SPRING,
-    unmappedTargetPolicy = ReportingPolicy.IGNORE
+    unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 
 )
 public interface UserMapper{
