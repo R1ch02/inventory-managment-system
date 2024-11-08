@@ -48,6 +48,14 @@ public class User {
     private String email;
 
     @NotNull
+    @Comment("Подверждение email")
+    private boolean emailVerified;
+
+    @NotNull
+    @Comment("Дейтвителен ли пользователь")
+    private boolean enabled;
+
+    @NotNull
     @Default
     @Comment("Список товаров, которые покупал пользователь")
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)

@@ -154,9 +154,7 @@ public class UserController {
         return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(new MessageResponse(
-            userService.addUser(
-                userMapper.toUser(userRequest)
-            )
+            userService.addUser(userRequest)
         ));
     }
 
@@ -218,7 +216,7 @@ public class UserController {
             })
         }
     )
-    public ResponseEntity<UserResponse> updateUserDataByName(@RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
+    public ResponseEntity<UserResponse> updateUserByEmail(@RequestBody @Validated(UserView.UpdateUser.class) @JsonView(UserView.UpdateUser.class) UserRequest userRequest) {
         
         userService.persistOrUpdateUser();
         
@@ -226,7 +224,7 @@ public class UserController {
             .status(HttpStatus.ACCEPTED)
             .body(
             userMapper.toUserResponse(
-                    userService.updateUserData(userRequest)
+                    userService.updateUserByEmail(userRequest)
                 )
             );
     }

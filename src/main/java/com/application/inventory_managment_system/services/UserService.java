@@ -2,6 +2,7 @@ package com.application.inventory_managment_system.services;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.application.inventory_managment_system.exceptions.ApiServiceException;
 import com.application.inventory_managment_system.mappers.UserMapper;
 import com.application.inventory_managment_system.model.dto.request.UserRequest;
-import com.application.inventory_managment_system.model.dto.request.keycloak.KeyCloakUserRepresentation;
+import com.application.inventory_managment_system.model.dto.response.keycloak.KeyCloakRoleInfoResponse;
 import com.application.inventory_managment_system.model.dto.response.keycloak.KeyCloakUserInfoResponse;
 import com.application.inventory_managment_system.model.entities.Product;
 import com.application.inventory_managment_system.model.entities.User;
@@ -44,36 +45,31 @@ public class UserService {
     }
 
     @Transactional
-    public User addUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
+    public User addUser(UserRequest userRequest) {
+        if (userRepository.existsByUsername(userRequest.getUsername())) {
             throw new ApiServiceException("Пользователь с таким логином уже существует", HttpStatus.CONFLICT);
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
 
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new ApiServiceException("Пользователь с таким email уже существует", HttpStatus.CONFLICT);
         }
+
+        User newUser = userMapper.toUser(userRequest);
         
-        UUID uuid;
-        while (true) {
-            uuid = UUID.randomUUID();
-            if (!userRepository.existsById(uuid)) {
-                user.setId(uuid);
-                break;
-            } 
-        }
 
-        restService.createUser(getServiceAccessToken(), getUserRepresentationByUser(user));
+        String accessToken = getServiceAccessToken();
+        
+        
+        restService.createUser(accessToken, userMapper.userRequestToKeyCloakUserRepresentation(userRequest));
 
-        return userRepository.save(user);
-    }
+        UUID userId = restService.getUsersByEmail(accessToken, newUser.getEmail()).getBody().get(0).getId();
+        newUser.setId(userId);
 
-    private KeyCloakUserRepresentation getUserRepresentationByUser(User user) {
-        return KeyCloakUserRepresentation.builder()
-            .email(user.getEmail())
-            .username(user.getUsername())
-            .emailVerified(true)
-            .enabled(true)
-            .build();
+        KeyCloakRoleInfoResponse adminRole = restService.getRoleByName(accessToken, "ims-admin").getBody();
+        restService.assignRolesToUser(accessToken, userId, List.of(adminRole));
+
+
+        return userRepository.save(newUser);
     }
 
     @Transactional
@@ -95,7 +91,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUserData(UserRequest userRequest) {
+    public User updateUserByEmail(UserRequest userRequest) {
 
         if (userRepository.existsByUsername(userRequest.getUsername())) {
             throw new ApiServiceException("Пользователь с таким логином уже существует", HttpStatus.CONFLICT);
@@ -109,6 +105,7 @@ public class UserService {
                         HttpStatus.NOT_FOUND));
 
         userMapper.updateUserFromDto(userRequest, updatedUser);
+
 
         return userRepository.save(updatedUser);
     }
@@ -147,5 +144,6 @@ public class UserService {
     }
 
     
+
 
 }

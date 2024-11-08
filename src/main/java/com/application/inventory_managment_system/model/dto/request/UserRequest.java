@@ -25,17 +25,23 @@ public class UserRequest {
     @Email(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
     @Length(max = 30, groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
     @Schema(description = "Электронный адрес пользователя", example = "example@ex.ru")
-    @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
+    @JsonView(UserView.CreateUser.class)
     private String email;
     
     @NotNull(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
     @Schema(description = "Действителен ли пользователь", example = "true")
+    @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
     private boolean enabled;
 
     @NotNull(groups = {UserView.CreateUser.class, UserView.UpdateUser.class})
-    @Schema(description = "Подтвержден ли email", example = "false")
+    @Schema(description = "Подтвержден ли email", example = "true")
+    @JsonView({ UserView.CreateUser.class, UserView.UpdateUser.class })
     private boolean emailVerified;
 
 
+    @NotBlank(groups = UserView.CreateUser.class)
+    @Schema(description = "Пароль", example = "qwerty12345")
+    @JsonView(UserView.CreateUser.class)
+    private String password;
 
 }
