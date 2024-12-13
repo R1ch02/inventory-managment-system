@@ -133,7 +133,6 @@ public class UserService {
         }
 
         return userRepository.save(user);
-
     }
 
     private String getServiceAccessToken() {
